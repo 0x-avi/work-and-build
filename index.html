@@ -109,6 +109,7 @@ details.script pre{margin:0 14px 10px;white-space:pre-wrap;font-family:var(--bod
   <section id="routine">
     <div class="rhead"><h2>Today</h2><span class="rcount" id="rCount"></span></div>
     <div class="daynav"><button type="button" data-nav="-1" aria-label="Previous day">←</button><span class="d" id="rDate"></span><button type="button" data-nav="1" aria-label="Next day">→</button><button type="button" data-nav="0" id="rTodayBtn">Today</button></div>
+    <h3 id="rKind"></h3>
     <div class="legend"><span><i style="background:var(--accent-soft)"></i>Job (Mon–Fri)</span><span><i style="background:var(--today-soft)"></i>Explore and build</span></div>
     <div class="routine" id="routineList"></div>
     <p class="muted">Ticks reset every day and are saved on this device. Weekdays, Saturday and Sunday each have their own routine.</p>
@@ -284,7 +285,8 @@ details.script pre{margin:0 14px 10px;white-space:pre-wrap;font-family:var(--bod
     var L=listFor(view), dp=pre(view);
     document.getElementById("routineList").innerHTML=rows(L,dp);
     var isToday=ymd(view)===ymd(today);
-    document.getElementById("rDate").textContent=(isToday?"Today · ":"")+fmt(view)+" · "+kind(view);
+    document.getElementById("rDate").textContent=(isToday?"Today · ":"")+fmt(view);
+    document.getElementById("rKind").textContent=kind(view).charAt(0).toUpperCase()+kind(view).slice(1)+" routine";
     document.getElementById("rTodayBtn").hidden=isToday;
     var c=count(L,dp),el=document.getElementById("rCount");el.textContent=c+" / "+L.length+" done";el.className="rcount"+(c===L.length?" hit":"");
 
