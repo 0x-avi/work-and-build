@@ -288,7 +288,7 @@ details.script pre{margin:0 14px 10px;white-space:pre-wrap;font-family:var(--bod
   function stat(d){var L=listFor(d);return [count(L,pre(d)),L.length];}
   function weekSum(key){var m=monday(today),s=0;for(var i=0;i<7;i++){var d=new Date(m);d.setDate(d.getDate()+i);s+=st["c"+ymd(d)+"_"+key]||0;}return s;}
   function ctr(key,label,target){var k="c"+ymd(view)+"_"+key,v=st[k]||0;
-    return '<div class="ctr"><span>'+label+'</span><button type="button" data-c="'+k+'" data-d="-1" aria-label="Decrease '+label+'">−</button><output class="'+(v>=target?"hit":"")+'">'+v+' / '+target+'</output><button type="button" data-c="'+k+'" data-d="1" aria-label="Increase '+label+'">+</button></div>';}
+    return '<div class="ctr"><span>'+label+'</span><button type="button" data-c="'+k+'" data-d="-1" aria-label="Decrease '+label+'">−</button><output class="'+(target&&v>=target?"hit":"")+'">'+v+(target?' / '+target:'')+'</output><button type="button" data-c="'+k+'" data-d="1" aria-label="Increase '+label+'">+</button></div>';}
 
   function render(){
     var L=listFor(view), dp=pre(view), wk=view.getDay()>0&&view.getDay()<6;
