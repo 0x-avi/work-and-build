@@ -12,7 +12,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
 <style>
-/* Layout: single column — header, today's routine (weekday / Saturday / Sunday), 14-day tracker, this week, milestones, interests, rules. */
+/* Layout: single column — header with week totals, today's routine (weekday / Saturday / Sunday) + counters, 14-day tracker, this week, goals, interests, rules, templates. */
 :root{
   --bg:#f3f5f4; --surface:#ffffff; --ink:#15211f; --muted:#5b6a67; --line:#d7dfdc;
   --accent:#0f6e66; --accent-soft:#dcefec; --today:#b07a0c; --today-soft:#fbf0d9; --done:#2f7d3b;
@@ -41,8 +41,7 @@ section{display:flex;flex-direction:column;gap:10px;scroll-margin-top:16px}
 .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
 .stats{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:14px;color:var(--muted)}
 .stats b{font-family:var(--mono);color:var(--ink);font-size:16px}
-.bar{height:6px;border-radius:99px;background:var(--line);overflow:hidden}
-.bar i{display:block;height:100%;width:0;background:var(--accent)}
+.stats b.hit{color:var(--done)}
 nav ol{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
 nav a{display:inline-block;text-decoration:none;font-size:14px;font-weight:500;padding:5px 12px;border-radius:99px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
 nav a:hover,nav a:focus-visible{border-color:var(--accent);color:var(--accent);outline:none}
@@ -65,6 +64,13 @@ button:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outli
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
 @media (max-width:420px){.routine label{grid-template-columns:18px 1fr}.routine .t{grid-column:2}.routine .t+span{grid-column:2}}
+/* counters */
+.counters{display:flex;flex-wrap:wrap;gap:12px 24px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.ctr{display:flex;align-items:center;gap:8px}
+.ctr span{font-size:13px;color:var(--muted);min-width:84px}
+.ctr button{font:600 16px var(--mono);width:36px;height:36px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.ctr output{font-family:var(--mono);font-size:18px;min-width:58px;text-align:center}
+.ctr output.hit{color:var(--done)}
 /* tracker */
 .hist{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
 .hd{display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 2px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);cursor:pointer;font:500 11px var(--mono);min-width:0}
@@ -90,17 +96,16 @@ details.script pre{margin:0 14px 10px;white-space:pre-wrap;font-family:var(--bod
 
 <div class="wrap">
   <header class="head">
-    <span class="eyebrow">Job Mon–Fri · Sat + Sun explore · review 22 Jan 2027</span>
+    <span class="eyebrow">Job hunt + AI work · 0–1 yr and associate roles · contract work</span>
     <h1>Work and Build</h1>
-    <div class="stats"><span><b id="sRev">–</b> days to the review</span><span><b id="sToday">0</b> blocks today</span><span><b id="sWeek">0</b> weekly goals</span><span><b id="sStreak">0</b> day streak</span></div>
-    <div class="bar" aria-hidden="true"><i id="mileBar"></i></div>
+    <div class="stats"><span><b id="sApps">0</b> applications this week</span><span><b id="sDms">0</b> cold DMs this week</span><span><b id="sToday">0</b> blocks today</span><span><b id="sStreak">0</b> day streak</span></div>
   </header>
 
   <nav aria-label="Index"><ol>
     <li><a href="#routine">Today</a></li>
     <li><a href="#track">Track</a></li>
     <li><a href="#week">This week</a></li>
-    <li><a href="#milestones">Milestones</a></li>
+    <li><a href="#goals">Goals</a></li>
     <li><a href="#explore">Interests</a></li>
     <li><a href="#rules">Rules</a></li>
     <li><a href="#scripts">Templates</a></li>
@@ -110,9 +115,10 @@ details.script pre{margin:0 14px 10px;white-space:pre-wrap;font-family:var(--bod
     <div class="rhead"><h2>Today</h2><span class="rcount" id="rCount"></span></div>
     <div class="daynav"><button type="button" data-nav="-1" aria-label="Previous day">←</button><span class="d" id="rDate"></span><button type="button" data-nav="1" aria-label="Next day">→</button><button type="button" data-nav="0" id="rTodayBtn">Today</button></div>
     <h3 id="rKind"></h3>
-    <div class="legend"><span><i style="background:var(--accent-soft)"></i>Job (Mon–Fri)</span><span><i style="background:var(--today-soft)"></i>Explore and build</span></div>
+    <div class="legend"><span><i style="background:var(--accent-soft)"></i>Job hunt</span><span><i style="background:var(--today-soft)"></i>AI work and building</span></div>
     <div class="routine" id="routineList"></div>
-    <p class="muted">Ticks reset every day and are saved on this device. Weekdays, Saturday and Sunday each have their own routine.</p>
+    <div class="counters" id="counters"></div>
+    <p class="muted">Ticks and counts are saved on this device and reset every day.</p>
   </section>
 
   <section id="track">
@@ -127,15 +133,15 @@ details.script pre{margin:0 14px 10px;white-space:pre-wrap;font-family:var(--bod
     <div class="routine" id="weekList"></div>
   </section>
 
-  <section id="milestones">
-    <div class="rhead"><h2>Milestones</h2><span class="rcount" id="mCount"></span></div>
-    <p class="muted">You're building the app solo, and the review on 22 Jan is about whether it ships. Hit these in order.</p>
+  <section id="goals">
+    <div class="rhead"><h2>Goals</h2><span class="rcount" id="mCount"></span></div>
+    <p class="muted">These stay ticked once done.</p>
     <div class="routine" id="mileList"></div>
   </section>
 
   <section id="explore">
     <h2>Interests</h2>
-    <p class="muted">Saturday goes deep on the main track. Sunday rotates through the rest. Weekday evenings stay light. Every finished thing gets a demo, a README and a post.</p>
+    <p class="muted">The main track gets your daytime AI hours. The rest rotates through the evening hobby block and the weekend finish block. Every finished thing gets a demo, a README and a post.</p>
 
     <h3>Main track: AI engineering (model building)</h3>
     <dl class="kv">
@@ -174,7 +180,7 @@ details.script pre{margin:0 14px 10px;white-space:pre-wrap;font-family:var(--bod
       <dt>Open source</dt><dd>diffusers and transformers (good-first-issues, then real PRs), GSoC</dd>
       <dt>Competitions</dt><dd>Hackathons, game jams, Kaggle, bounties</dd>
       <dt>Posting</dt><dd>X threads and a blog for every implementation, experiment and PR</dd>
-      <dt>Research</dt><dd>Research roles and labs (e.g. OIST)</dd>
+      <dt>Freelance niche</dt><dd>AI automation, agents, fine-tuning, LoRA, domain models, embedders</dd>
       <dt>Targets</dt><dd>Sarvam, Krutrim, DeepMind, MSR and Adobe India, big-tech ML teams, vertical AI startups</dd>
     </dl>
   </section>
@@ -182,13 +188,14 @@ details.script pre{margin:0 14px 10px;white-space:pre-wrap;font-family:var(--bod
   <section id="rules">
     <h2>Rules</h2>
     <ul class="plain">
-      <li>On weekdays the job gets your best 6 hours, before anything else.</li>
-      <li>Agree scope in writing. If it grows, the date moves, and say so in the Friday update.</li>
-      <li>Saturday and Sunday are yours. Don't let job work creep in unless something is genuinely on fire.</li>
+      <li>Apply to 0–1 year and associate roles. Mumbai and Thane first, then remote, Bangalore and Hyderabad.</li>
+      <li>Every cold DM leads with proof: the freight agent (100+ queries a day), the paid SaaS, or GinLo. Ask a real question, not for a job.</li>
+      <li>An interview outranks everything except sleep. Say yes to paid trials.</li>
+      <li>Whatever you start in the finish block, you finish. No new project until the current one has a demo and a README.</li>
+      <li>Follow up once on day 4 and once on day 9 after applying.</li>
+      <li>Read a full contract before accepting anything. Lock-ins, notice and exclusivity get negotiated before you start, not after.</li>
       <li>Security work: only programs and targets that explicitly allow testing. Read the scope first.</li>
-      <li>Paid side work, bounties and prizes only once your contract allows them.</li>
-      <li>Keep personal work on your own accounts and equipment. Never use the company's code, data or tools in it.</li>
-      <li>Build in public: one post a week about what you built or learned, never about company work.</li>
+      <li>Build in public: one post a week about what you built or learned.</li>
     </ul>
   </section>
 
@@ -200,7 +207,6 @@ details.script pre{margin:0 14px 10px;white-space:pre-wrap;font-family:var(--bod
 
 <script>
 (function(){
-  var REVIEW=new Date(2027,0,22);
   var DOW=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   var KEY="workbuild-v1",st={};
   try{st=JSON.parse(localStorage.getItem(KEY)||"{}")||{};}catch(e){st={};}
@@ -215,64 +221,64 @@ details.script pre{margin:0 14px 10px;white-space:pre-wrap;font-family:var(--bod
 
   // [time, text, kind(job|build|''), stable id]
   var R=[
-    ["09:30–10:00","Plan: pick the one thing you'll ship in the app today","job","plan"],
-    ["10:00–13:00","Job deep work 1: build (phone away)","job","job1"],
-    ["13:00–14:00","Lunch and a walk","","lunch"],
-    ["14:00–17:00","Job deep work 2: finish, push, deploy, and add a line to your work log","job","job2"],
-    ["17:00–17:30","Research the top people: one person 1–2 years ahead of you. Note 1 thing to copy","build","research"],
-    ["17:30–18:00","Break, no screens","","break"],
-    ["18:00–19:00","Explore: read a blog, paper or course section, then implement it small","build","learn"],
-    ["19:00–20:00","Build: personal project or an open-source PR","build","build"],
-    ["20:00–21:00","Workout","","workout"],
-    ["21:00–01:00","Partner and family","","family"],
-    ["01:30","Sleep","","sleep"]
+    ["09:00–09:30","Plan: write today's target for each block","","h_plan"],
+    ["09:30–11:30","Interview prep: one DSA set, then SQL or system design (rotate daily)","job","h_prep"],
+    ["11:30–13:00","Apply to 0–1 yr and associate roles, then cold DM startups and pitch contract work","job","h_apply"],
+    ["13:00–14:00","Lunch and a walk","","h_lunch"],
+    ["14:00–17:30","Main AI work: your flagship model-building project","build","h_main"],
+    ["17:30–18:00","Break, no screens","","h_break"],
+    ["18:00–19:30","Read a new paper, blog or course section, then make something from it (code, notes or a blog post)","build","h_read"],
+    ["19:30–20:30","Workout","","h_workout"],
+    ["20:30–22:00","Hobbies and content: games, shaders, diffusion or RL experiments, a video or post","build","h_hobby"],
+    ["22:00–01:00","Partner and family","","h_family"],
+    ["01:30","Sleep","","h_sleep"]
   ];
   var RSAT=[
-    ["10:00–10:30","Plan: pick the one thing you'll finish this weekend","build","oplan"],
-    ["10:30–13:30","Main track, part 1: read the paper or chapter, then implement it from scratch (diffusion, transformers, fine-tuning)","build","odeep1"],
-    ["13:30–14:30","Lunch and a walk","","olunch"],
-    ["14:30–17:30","Main track, part 2: build and ship (flagship project, an open-source PR, a hackathon or Kaggle)","build","odeep2"],
-    ["17:30–18:30","Security: a CTF or vulnerability research (authorised targets only)","build","obounty"],
-    ["18:30–19:00","Post what you made: an X thread or blog, with what broke","build","opost"],
-    ["19:00–20:00","Free play: games, anime, cubing, whatever pulls you","","ofree"],
-    ["20:00–21:00","Workout","","oworkout"],
-    ["21:00–01:00","Partner and family","","ofamily"],
-    ["01:30","Sleep","","osleep"]
+    ["10:00–10:30","Plan: pick the one thing you'll finish today","","s_plan"],
+    ["10:30–14:30","Finish block: AI work, an open-source PR or a Kaggle competition. Whatever you start, you finish","build","s_finish"],
+    ["14:30–15:30","Lunch and a walk","","s_lunch"],
+    ["15:30–18:00","Main AI work: your flagship project","build","s_main"],
+    ["18:00–19:00","Interview prep (light): one DSA set or a system design mock","job","s_prep"],
+    ["19:00–19:30","Cold DMs: reply to anyone who answered, then send a few new ones","job","s_dm"],
+    ["19:30–20:30","Workout","","s_workout"],
+    ["20:30–22:00","Hobbies and content: games, shaders, diffusion or RL, music or Japanese","build","s_hobby"],
+    ["22:00–01:00","Partner and family","","s_family"],
+    ["01:30","Sleep","","s_sleep"]
   ];
   var RSUN=[
-    ["10:30–11:00","Slow start: pick one secondary interest for today","build","uplan"],
-    ["11:00–13:30","Secondary track, hands-on: GPU and systems, game dev and shaders, 3D, or RL","build","usec"],
-    ["13:30–14:30","Lunch and a walk","","ulunch"],
-    ["14:30–16:30","Finish yesterday's work: results, README, demo, then push it","build","ufinish"],
-    ["16:30–17:30","Fundamentals: one maths or DSA topic, with problems","build","ufund"],
-    ["17:30–18:30","Creative hour: music (FL Studio, guitar), Japanese, or art","build","ucreate"],
-    ["18:30–19:00","Weekly review: tick this week's goals and pick next Saturday's target","build","ureview"],
-    ["19:00–20:00","Free play: games, anime, cubing","","ufree"],
-    ["20:00–21:00","Workout","","uworkout"],
-    ["21:00–00:30","Partner and family","","ufamily"],
-    ["01:00","Sleep (work tomorrow)","","usleep"]
+    ["10:00–10:30","Plan: pick the one thing you'll finish today","","u_plan"],
+    ["10:30–14:30","Finish block: AI work, an open-source PR or a Kaggle competition. Whatever you start, you finish","build","u_finish"],
+    ["14:30–15:30","Lunch and a walk","","u_lunch"],
+    ["15:30–18:00","Main AI work: your flagship project","build","u_main"],
+    ["18:00–19:00","Interview prep (light): one DSA set or a system design mock","job","u_prep"],
+    ["19:00–19:30","Weekly review: tick this week's goals, count replies, plan next week","job","u_review"],
+    ["19:30–20:30","Workout","","u_workout"],
+    ["20:30–22:00","Hobbies and content: games, shaders, diffusion or RL, music or Japanese","build","u_hobby"],
+    ["22:00–00:30","Partner and family","","u_family"],
+    ["01:00","Sleep","","u_sleep"]
   ];
+  var TARGET_APPS=40, TARGET_DMS=25;
   var W=[
-    ["Fri","Send the weekly update to your manager: shipped, next, blockers, what you need","job","update"],
-    ["Fri","Update your work log with this week's wins and numbers (you'll use it in the review)","job","log"],
-    ["Sat + Sun","Finish and ship one thing from your main track (code, results, README)","build","deep"],
+    ["Week","Reach "+TARGET_APPS+" applications (the counter in the header tracks it)","job","apps"],
+    ["Week","Reach "+TARGET_DMS+" cold DMs to founders, hiring managers or contract leads","job","dms"],
+    ["Week","Follow up on applications from 4 and 9 days ago","job","follow"],
+    ["Week","One system design mock, out loud, timed","job","sysd"],
+    ["Sat + Sun","Finish and ship one thing (code, results, README, demo)","build","ship"],
     ["Any day","One open-source contribution (diffusers, transformers or your chosen repo)","build","oss"],
-    ["Any day","One CTF or security research session (authorised targets only)","build","bounty"],
     ["Any day","One public post: what you built, what broke, what you learned","build","post"],
     ["Month","One hackathon, game jam or Kaggle competition this month","build","hack"]
   ];
   var M=[
-    ["by 28 Nov","Contract signed, with every agreed change in writing","m2"],
-    ["by 28 Nov","Week 1: write the v1 scope one-pager and get your manager to say yes to it","m1"],
-    ["by 6 Dec","A clickable version deployed, with a link they can open","m3"],
-    ["by 3 Jan","Core features working end to end","m4"],
-    ["by 5 Jan","Check in with yourself: is this the right place for the next year?","m7"],
-    ["by 17 Jan","Polish, bug bash, and a demo rehearsed","m5"],
-    ["22 Jan","Review: show the demo, the work log and the weekly updates","m6"]
+    ["First","Resume shows \"Thane, Mumbai\" in the header","","g_resume"],
+    ["First","LinkedIn headline and About updated, open to work for 0–1 yr and associate roles","","g_li"],
+    ["Dec","One flagship AI project live, with a demo and a write-up","build","g_flag"],
+    ["Dec","First paid contract or pilot with a startup","job","g_contract"],
+    ["Dec","Five interviews reached","job","g_int"],
+    ["Goal","An offer you'd actually sign","job","g_offer"]
   ];
 
   function listFor(d){var w=d.getDay();return w===6?RSAT:w===0?RSUN:R;}
-  function kind(d){var w=d.getDay();return w===6?"Saturday, deep build":w===0?"Sunday, explore and reset":"work day";}
+  function kind(d){var w=d.getDay();return w===6?"Saturday routine":w===0?"Sunday routine":"Weekday routine";}
   function pre(d){return "d"+ymd(d)+"_";}
   function rows(list,prefix){
     return list.map(function(r){var id=prefix+r[3];
@@ -280,15 +286,19 @@ details.script pre{margin:0 14px 10px;white-space:pre-wrap;font-family:var(--bod
   }
   function count(list,prefix){var c=0;list.forEach(function(r){if(st[prefix+r[3]])c++;});return c;}
   function stat(d){var L=listFor(d);return [count(L,pre(d)),L.length];}
+  function weekSum(key){var m=monday(today),s=0;for(var i=0;i<7;i++){var d=new Date(m);d.setDate(d.getDate()+i);s+=st["c"+ymd(d)+"_"+key]||0;}return s;}
+  function ctr(key,label,target){var k="c"+ymd(view)+"_"+key,v=st[k]||0;
+    return '<div class="ctr"><span>'+label+'</span><button type="button" data-c="'+k+'" data-d="-1" aria-label="Decrease '+label+'">−</button><output class="'+(v>=target?"hit":"")+'">'+v+' / '+target+'</output><button type="button" data-c="'+k+'" data-d="1" aria-label="Increase '+label+'">+</button></div>';}
 
   function render(){
-    var L=listFor(view), dp=pre(view);
+    var L=listFor(view), dp=pre(view), wk=view.getDay()>0&&view.getDay()<6;
     document.getElementById("routineList").innerHTML=rows(L,dp);
     var isToday=ymd(view)===ymd(today);
     document.getElementById("rDate").textContent=(isToday?"Today · ":"")+fmt(view);
-    document.getElementById("rKind").textContent=kind(view).charAt(0).toUpperCase()+kind(view).slice(1)+" routine";
+    document.getElementById("rKind").textContent=kind(view);
     document.getElementById("rTodayBtn").hidden=isToday;
     var c=count(L,dp),el=document.getElementById("rCount");el.textContent=c+" / "+L.length+" done";el.className="rcount"+(c===L.length?" hit":"");
+    document.getElementById("counters").innerHTML=ctr("apps","Applications",wk?8:0)+ctr("dms","Cold DMs",wk?5:3);
 
     // 14-day tracker, oldest first
     var h="";
@@ -300,28 +310,31 @@ details.script pre{margin:0 14px 10px;white-space:pre-wrap;font-family:var(--bod
 
     // week (the monthly goal is keyed by month)
     var wp="w"+ymd(monday(today))+"_", mp="mo"+today.getFullYear()+String(today.getMonth()+1).padStart(2,"0")+"_", wc=0;
+    var apps=weekSum("apps"), dms=weekSum("dms");
+    if(apps>=TARGET_APPS)st[wp+"apps"]=true; if(dms>=TARGET_DMS)st[wp+"dms"]=true;
     document.getElementById("weekList").innerHTML=W.map(function(r){var id=(r[3]==="hack"?mp:wp)+r[3];if(st[id])wc++;
       return '<label class="'+r[2]+'"><input type="checkbox" data-k="'+id+'"'+(st[id]?" checked":"")+'><span class="t">'+esc(r[0])+'</span><span>'+esc(r[1])+'</span></label>';}).join("");
     var we=document.getElementById("wCount");we.textContent=wc+" / "+W.length+" done";we.className="rcount"+(wc===W.length?" hit":"");
     var mon=monday(today),sun=new Date(mon);sun.setDate(sun.getDate()+6);
     document.getElementById("wLabel").textContent="Week of "+fmt(mon)+" – "+fmt(sun)+". Resets every Monday; the monthly goal resets each month.";
 
-    // milestones (persistent)
+    // goals (persistent)
     var mc=0;
-    document.getElementById("mileList").innerHTML=M.map(function(r){var id="ms_"+r[2];if(st[id])mc++;
-      return '<label class="job"><input type="checkbox" data-k="'+id+'"'+(st[id]?" checked":"")+'><span class="t">'+esc(r[0])+'</span><span>'+esc(r[1])+'</span></label>';}).join("");
+    document.getElementById("mileList").innerHTML=M.map(function(r){var id="ms_"+r[3];if(st[id])mc++;
+      return '<label class="'+r[2]+'"><input type="checkbox" data-k="'+id+'"'+(st[id]?" checked":"")+'><span class="t">'+esc(r[0])+'</span><span>'+esc(r[1])+'</span></label>';}).join("");
     var me=document.getElementById("mCount");me.textContent=mc+" / "+M.length+" done";me.className="rcount"+(mc===M.length?" hit":"");
 
     // header
-    var days=Math.round((REVIEW-today)/864e5), ts=stat(today);
-    document.getElementById("sRev").textContent=days>0?days:"0";
+    var ts=stat(today), sa=document.getElementById("sApps"), sm=document.getElementById("sDms");
+    sa.textContent=apps+"/"+TARGET_APPS; sa.className=apps>=TARGET_APPS?"hit":"";
+    sm.textContent=dms+"/"+TARGET_DMS; sm.className=dms>=TARGET_DMS?"hit":"";
     document.getElementById("sToday").textContent=ts[0]+"/"+ts[1];
-    document.getElementById("sWeek").textContent=wc+"/"+W.length;
     document.getElementById("sStreak").textContent=streak;
-    document.getElementById("mileBar").style.width=(mc/M.length*100)+"%";
   }
   document.addEventListener("change",function(e){var k=e.target.getAttribute&&e.target.getAttribute("data-k");if(k){st[k]=e.target.checked;save();render();}});
   document.addEventListener("click",function(e){
+    var c=e.target.closest&&e.target.closest("button[data-c]");
+    if(c){var k=c.getAttribute("data-c");st[k]=Math.max(0,(st[k]||0)+Number(c.getAttribute("data-d")));save();render();return;}
     var b=e.target.closest&&e.target.closest("button[data-nav]");
     if(b){var n=Number(b.getAttribute("data-nav"));
       if(n===0)view=new Date(today);else{view=new Date(view);view.setDate(view.getDate()+n);if(view>today)view=new Date(today);}render();return;}
@@ -331,8 +344,10 @@ details.script pre{margin:0 14px 10px;white-space:pre-wrap;font-family:var(--bod
   render();
 
   var S=[
-    ["Friday update to your manager","This week\n• Shipped: [feature / fix, with link]\n• Progress: [what moved, numbers if any]\n\nNext week\n• [1–3 things]\n\nBlockers / need from you\n• [decision, access, feedback]\n\nOn track for [milestone] by [date]."],
-    ["Decline a recruiter politely","Hi [Name], thanks for reaching out about [role]. I've recently accepted another role, so I'll pass for now, but I'd love to stay in touch."]
+    ["Cold DM to a startup founder","Hi [Name], I saw [specific thing about their product]. Quick question: [real question about how they handle X].\n\nI build production LLM agents. One handles 100+ freight queries a day in under 2s, and I shipped a paid SaaS with LLM-written reports. Happy to share a 60-second demo.\n\nIf you're hiring for 0–1 yr roles or need help on [their problem] as a contract, I'd love to talk."],
+    ["Contract pitch","Hi [Name], I build AI automations that answer customer questions and process documents on WhatsApp and email. One of mine handles 100+ queries a day for freight companies.\n\nI can build a small, fixed-scope version for [Business]: [specific idea], in about [1–2] weeks. Would a quick call this week work?"],
+    ["Follow-up (day 4 / 9)","Hi [Name], following up on [role]. Since applying, I [built or noticed something: link]. I'm still keen, can start immediately, and I'm happy to do a paid trial task."],
+    ["Referral ask","Hi [Name], I applied for [role] at [Company]. Quick question: [real question about their work].\n\nI build production LLM agents (60-second demo: [link]). If I look like a fit, would you be open to referring me? I'll send a 3-line blurb."]
   ];
   var sl=document.getElementById("scriptList");
   S.forEach(function(s,i){var d=document.createElement("details");d.className="script";d.innerHTML='<summary>'+s[0]+'</summary><pre id="s'+i+'"></pre><button class="copy" type="button" data-s="'+i+'">Copy</button>';d.querySelector("pre").textContent=s[1];sl.appendChild(d);});
